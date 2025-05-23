@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Clash - Knockout</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+  <style>
+    /* CSS Variables */
+    :root {
+      --bg: #fff9f0;
+      --card: #ffffff;
+      --border: rgba(0,0,0,0.08);
+      --text: #2a2a2a;
+      --accent: #ff9500;
+      --accent-light: #ffcc00;
+    }
+
+    /* Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Styles */
+    header {
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Layout Styles */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Input Section Styles */
+    .input-group {
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .input-group.hidden {
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      transform: translateY(-20px);
+      pointer-events: none;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .input-group textarea {
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      resize: vertical;
+      min-height: 100px;
+      background: var(--card);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    /* Button Styles */
+    .button-group {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      color: white;
+      box-shadow: 0 2px 8px rgba(255,149,0,0.2);
+    }
+
+    .btn-secondary {
+      background: rgba(0,0,0,0.05);
+      color: var(--text);
+    }
+
+    /* Matchup Section Styles */
+    .matchup-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+
+    .matchup {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 0.5rem 0;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards;
+    }
+
+    /* Video Card Styles */
+    .video-card {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+
+    .thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-iframe.active {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .thumbnail.hidden {
+      opacity: 0;
+    }
+
+    .vote-btn {
+      margin-top: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* Winner Section Styles */
+    .winner-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem 0;
+    }
+
+    .winner-section {
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      opacity: 0;
+      transform: scale(0.9);
+      animation: fadeInScale 0.6s 0.2s forwards;
+    }
+
+    .winner-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .winner-video-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f5f5f5;
+      margin-bottom: 1rem;
+    }
+
+    .winner-thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+
+    .winner-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .winner-iframe.active {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .winner-thumbnail.hidden {
+      opacity: 0;
+    }
+
+    .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Added Videos Styles */
+    .added-videos {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      background: rgba(255,204,0,0.1);
+      border-radius: 10px;
+    }
+
+    .added-videos h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+
+    .added-videos-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .added-video-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .added-thumbnail {
+      width: 100%;
+      height: 75px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #ff3b30;
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Animation Styles */
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInScale {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Responsive Styles */
+    @media (min-width: 640px) {
+      header {
+        font-size: 2rem;
+        padding: 1.5rem 1rem;
+      }
+      
+      .input-group textarea {
+        padding: 1rem;
+        font-size: 0.95rem;
+        min-height: 120px;
+      }
+      
+      .button-group {
+        flex-direction: row;
+        gap: 1rem;
+      }
+      
+      .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+      }
+      
+      .matchup {
+        flex-direction: row;
+        gap: 1.5rem;
+      }
+      
+      .video-card {
+        padding: 1.2rem;
+      }
+      
+      .vote-btn {
+        padding: 0.75rem 1.5rem;
+      }
+      
+      .vote-btn:hover {
+        animation: pulse 0.6s ease infinite alternate;
+      }
+      
+      @keyframes pulse {
+        from { transform: scale(1); }
+        to { transform: scale(1.05); }
+      }
+      
+      @keyframes floatIn {
+        0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      
+      .video-card {
+        animation: floatIn 0.5s ease-out;
+      }
+      
+      .winner-section::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, var(--accent) 20%, transparent 70%);
+        transform: translateX(-50%) scale(0);
+        animation: popReveal 0.5s ease-out 0.2s forwards;
+      }
+      
+      @keyframes popReveal {
+        to { transform: translateX(-50%) scale(1); opacity: 0; }
+      }
+      
+      .thumbnail:hover,
+      .winner-thumbnail:hover,
+      .added-thumbnail:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .added-video-item {
+        animation: slideIn 0.4s ease-in;
+      }
+      
+      @keyframes slideIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      
+      .video-card, .winner-section {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      }
+      
+      .winner-section h2 {
+        font-size: 1.8rem;
+      }
+      
+      .added-videos-list {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+      
+      .added-thumbnail {
+        height: 90px;
+      }
+    }
+    
+    .back-home-btn{
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://i.pinimg.com/736x/02/07/2a/02072a87d479f3b0da5ae73160107b18.jpg" alt="Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;">
+    Video Clash - Knockout
+  </header>
+
+  <div class="container">
+    <div class="content-area">
+      <!-- Input Section -->
+      <div class="input-group" id="inputGroup">
+        <label for="videoLinks">Paste YouTube video links (1 per line):</label>
+        <textarea id="videoLinks" rows="5" placeholder="https://www.youtube.com/watch?v=abc123\nhttps://youtu.be/xyz456"></textarea>
+        
+        <div class="button-group">
+          <button class="btn btn-primary" id="confirmBtn">Confirm Links</button>
+          <button class="btn btn-secondary" onclick="clearInput()">Clear</button>
+        </div>
+        
+        <div class="added-videos" id="addedVideos" style="display: none;">
+          <h3>Added Videos</h3>
+          <div class="added-videos-list" id="addedVideosList"></div>
+        </div>
+        
+        <button class="btn btn-primary" id="startBtn" onclick="startTournament()" style="display: none; margin-top: 1rem;">Start Tournament</button>
+      </div>
+
+      <!-- Matchup Section -->
+      <div class="matchup-container" id="matchupContainer" style="display:none;">
+        <div class="matchup" id="matchup">
+          <div class="video-card" onmouseenter="hoverVideo('left')" onmouseleave="unhoverVideo('left')">
+            <div class="video-container" id="containerLeft">
+              <img class="thumbnail" id="thumbLeft" src="">
+              <iframe class="video-iframe" id="videoLeft" allowfullscreen allow="autoplay"></iframe>
+            </div>
+            <button class="vote-btn" onclick="vote('left')">Choose This</button>
+          </div>
+          <div class="video-card" onmouseenter="hoverVideo('right')" onmouseleave="unhoverVideo('right')">
+            <div class="video-container" id="containerRight">
+              <img class="thumbnail" id="thumbRight" src="">
+              <iframe class="video-iframe" id="videoRight" allowfullscreen allow="autoplay"></iframe>
+            </div>
+            <button class="vote-btn" onclick="vote('right')">Choose This</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Winner Section -->
+      <div class="winner-container" id="winnerContainer" style="display:none;">
+        <div class="winner-section" id="winner">
+          <h2>🏆 Winner</h2>
+          <div class="winner-video-container" onclick="playWinnerVideo()">
+            <img class="winner-thumbnail" id="thumbWinner" src="">
+            <div class="play-icon">▶</div>
+            <iframe class="winner-iframe" id="winnerVideo" allowfullscreen></iframe>
+          </div>
+          <button class="back-home-btn" onclick="resetTournament()">Go Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Application State
+    let videos = [];
+    let queue = [];
+    let currentMatch = null;
+    let hoverTimeout = null;
+
+    // DOM Elements
+    const domElements = {
+      videoLinks: document.getElementById('videoLinks'),
+      confirmBtn: document.getElementById('confirmBtn'),
+      addedVideos: document.getElementById('addedVideos'),
+      addedVideosList: document.getElementById('addedVideosList'),
+      startBtn: document.getElementById('startBtn'),
+      inputGroup: document.getElementById('inputGroup'),
+      matchupContainer: document.getElementById('matchupContainer'),
+      winnerContainer: document.getElementById('winnerContainer'),
+      matchup: document.getElementById('matchup'),
+      thumbLeft: document.getElementById('thumbLeft'),
+      thumbRight: document.getElementById('thumbRight'),
+      videoLeft: document.getElementById('videoLeft'),
+      videoRight: document.getElementById('videoRight'),
+      thumbWinner: document.getElementById('thumbWinner'),
+      winnerVideo: document.getElementById('winnerVideo')
+    };
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+      domElements.videoLinks.addEventListener('input', updateVideoPreviews);
+      domElements.confirmBtn.addEventListener('click', confirmLinks);
+    });
+
+    // YouTube URL Functions
+    function extractVideoId(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function getThumbnailUrl(url) {
+      const videoId = extractVideoId(url);
+      return videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '';
+    }
+
+    function getEmbedUrl(url, autoplay = false) {
+      const videoId = extractVideoId(url);
+      return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? 1 : 0}&mute=1` : '';
+    }
+
+    // Input Handling Functions
+    function confirmLinks() {
+      const input = domElements.videoLinks.value.trim();
+      const links = input.split('\n').filter(Boolean).map(link => link.trim());
+      
+      if (links.length === 0) {
+        alert("Please paste at least one YouTube link");
+        return;
+      }
+      
+      const validLinks = links.filter(link => extractVideoId(link));
+      
+      if (validLinks.length === 0) {
+        alert("Please enter valid YouTube links");
+        return;
+      }
+      
+      videos = [...videos, ...validLinks];
+      domElements.videoLinks.value = '';
+      updateAddedVideosList();
+      
+      if (videos.length >= 2) {
+        domElements.startBtn.style.display = 'block';
+      }
+      
+      domElements.addedVideos.style.display = 'block';
+    }
+
+    function updateVideoPreviews() {
+      const input = domElements.videoLinks.value.trim();
+      const links = input.split('\n').filter(Boolean);
+      const previewContainer = document.getElementById('videoPreview');
+      previewContainer.innerHTML = '';
+      
+      links.forEach(link => {
+        const videoId = extractVideoId(link);
+        if (videoId) {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'preview-item';
+          
+          const thumb = document.createElement('img');
+          thumb.className = 'preview-thumbnail';
+          thumb.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+          
+          previewItem.appendChild(thumb);
+          previewContainer.appendChild(previewItem);
+        }
+      });
+    }
+
+    function updateAddedVideosList() {
+      domElements.addedVideosList.innerHTML = '';
+      
+      videos.forEach((video, index) => {
+        const videoId = extractVideoId(video);
+        if (!videoId) return;
+        
+        const item = document.createElement('div');
+        item.className = 'added-video-item';
+        
+        const thumb = document.createElement('img');
+        thumb.className = 'added-thumbnail';
+        thumb.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '×';
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeVideo(index);
+        };
+        
+        item.appendChild(thumb);
+        item.appendChild(removeBtn);
+        domElements.addedVideosList.appendChild(item);
+      });
+    }
+
+    function removeVideo(index) {
+      videos.splice(index, 1);
+      updateAddedVideosList();
+      
+      if (videos.length < 2) {
+        domElements.startBtn.style.display = 'none';
+      }
+      
+      if (videos.length === 0) {
+        domElements.addedVideos.style.display = 'none';
+      }
+    }
+
+    function clearInput() {
+      domElements.videoLinks.value = '';
+      document.getElementById('videoPreview').innerHTML = '';
+    }
+
+    // Tournament Functions
+    function startTournament() {
+      if (videos.length < 2) return alert("Please enter at least 2 YouTube video links.");
+      
+      queue = [...videos].sort(() => Math.random() - 0.5);
+      domElements.inputGroup.classList.add('hidden');
+      domElements.matchupContainer.style.display = 'flex';
+      domElements.winnerContainer.style.display = 'none';
+      showNextMatch();
+    }
+
+    function showNextMatch() {
+      if (queue.length === 1) {
+        // Show winner section
+        domElements.matchupContainer.style.display = 'none';
+        domElements.winnerContainer.style.display = 'flex';
+        
+        const winnerUrl = queue[0];
+        const winnerVideoId = extractVideoId(winnerUrl);
+        
+        // Set winner thumbnail
+        domElements.thumbWinner.src = getThumbnailUrl(winnerUrl);
+        domElements.thumbWinner.classList.remove('hidden');
+        
+        // Set winner iframe source (without autoplay initially)
+        domElements.winnerVideo.src = getEmbedUrl(winnerUrl);
+        domElements.winnerVideo.classList.remove('active');
+        return;
+      }
+
+      const left = queue.shift();
+      const right = queue.shift();
+      currentMatch = { left, right };
+
+      // Set thumbnails
+      domElements.thumbLeft.src = getThumbnailUrl(left);
+      domElements.thumbRight.src = getThumbnailUrl(right);
+      
+      // Set iframe sources (without autoplay initially)
+      domElements.videoLeft.src = getEmbedUrl(left);
+      domElements.videoRight.src = getEmbedUrl(right);
+      
+      // Reset display states
+      domElements.thumbLeft.classList.remove('hidden');
+      domElements.thumbRight.classList.remove('hidden');
+      domElements.videoLeft.classList.remove('active');
+      domElements.videoRight.classList.remove('active');
+    }
+
+    // Video Interaction Functions
+    function hoverVideo(side) {
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      
+      hoverTimeout = setTimeout(() => {
+        const videoId = side === 'left' ? 'videoLeft' : 'videoRight';
+        const thumbId = side === 'left' ? 'thumbLeft' : 'thumbRight';
+        
+        // Show the video and hide the thumbnail
+        document.getElementById(thumbId).classList.add('hidden');
+        document.getElementById(videoId).classList.add('active');
+        
+        // Force the video to play by reloading with autoplay
+        const currentSrc = document.getElementById(videoId).src;
+        if (!currentSrc.includes('autoplay=1')) {
+          document.getElementById(videoId).src = currentSrc.replace('autoplay=0', 'autoplay=1');
+        }
+      }, 300);
+    }
+
+    function unhoverVideo(side) {
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      
+      const videoId = side === 'left' ? 'videoLeft' : 'videoRight';
+      const thumbId = side === 'left' ? 'thumbLeft' : 'thumbRight';
+      
+      // Show the thumbnail and hide the video
+      document.getElementById(thumbId).classList.remove('hidden');
+      document.getElementById(videoId).classList.remove('active');
+      
+      // Pause the video by removing autoplay
+      const currentSrc = document.getElementById(videoId).src;
+      document.getElementById(videoId).src = currentSrc.replace('autoplay=1', 'autoplay=0');
+    }
+
+    function playWinnerVideo() {
+      domElements.thumbWinner.classList.add('hidden');
+      domElements.winnerVideo.classList.add('active');
+      
+      // Force the winner video to play
+      const currentSrc = domElements.winnerVideo.src;
+      if (!currentSrc.includes('autoplay=1')) {
+        domElements.winnerVideo.src = currentSrc.replace('autoplay=0', 'autoplay=1');
+      }
+    }
+
+    function vote(winner) {
+      const winnerUrl = currentMatch[winner];
+      queue.push(winnerUrl);
+      showNextMatch();
+    }
+
+    function resetTournament() {
+      // Reset all state
+      videos = [];
+      queue = [];
+      currentMatch = null;
+      
+      // Hide winner section and show input
+      domElements.winnerContainer.style.display = 'none';
+      domElements.matchupContainer.style.display = 'none';
+      domElements.inputGroup.classList.remove('hidden');
+      
+      // Reset UI elements
+      domElements.addedVideos.style.display = 'none';
+      domElements.startBtn.style.display = 'none';
+      domElements.videoLinks.value = '';
+      domElements.addedVideosList.innerHTML = '';
+    }
+  </script>
+</body>
+</html>
